@@ -4,9 +4,12 @@ import { AppService } from './app.service';
 import { AttractionModule } from './attraction/attraction.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Attraction } from './attraction/entities/attraction.entity';
+import { LoggingModule } from 'nestjs-logging-lib';
 
 @Module({
-  imports: [TypeOrmModule.forRoot({
+  imports: [
+    LoggingModule,
+    TypeOrmModule.forRoot({
     type: 'mysql',
     host: 'localhost',
     port: 3306,
