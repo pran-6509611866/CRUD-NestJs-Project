@@ -1,80 +1,88 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { AttractionService } from './attraction.service';
 import { CreateAttractionDto } from './dto/create-attraction.dto';
 import { UpdateAttractionDto } from './dto/update-attraction.dto';
-import { LoggingModule } from 'nestjs-logging-lib';
+import { LoggingService } from 'nestjs-logging-lib'; // เปลี่ยนจาก Logger
 
 @Controller('attraction')
 export class AttractionController {
-  private readonly logger = new Logger(AttractionController.name);
-
-  constructor(private readonly attractionService: AttractionService) {}
+  constructor(
+    private readonly attractionService: AttractionService,
+    private readonly logger: LoggingService // เปลี่ยนจาก Logger
+  ) {}
 
   @Post()
   async create(@Body() createAttractionDto: CreateAttractionDto) {
-    this.logger.log('Creating attraction: ' + JSON.stringify(createAttractionDto));
+    this.logger.log(`POST /attraction - สร้าง attraction ใหม่`, 'AttractionController');
+    this.logger.log(`ข้อมูลที่ส่งมา: ${JSON.stringify(createAttractionDto)}`, 'AttractionController');
+    
     try {
       const attraction = await this.attractionService.create(createAttractionDto);
-      this.logger.log(`Created attraction with id: ${attraction.id}`);
+      this.logger.log(`สร้าง attraction สำเร็จ ID: ${attraction.id}, ชื่อ: ${attraction.name}`, 'AttractionController');
       return attraction;
     } catch (error) {
-      this.logger.error('Error creating attraction:', error);
+      this.logger.error('เกิดข้อผิดพลาดในการสร้าง attraction', error.stack, 'AttractionController');
       throw error;
     }
   }
 
   @Get()
   async findAll() {
-    this.logger.log('Finding all attractions');
+    this.logger.log('GET /attraction - ดึงข้อมูล attraction ทั้งหมด', 'AttractionController');
+    
     try {
       const attractions = await this.attractionService.findAll();
-      this.logger.log(`Found ${attractions.length} attractions`);
+      this.logger.log(`พบข้อมูล attraction จำนวน ${attractions.length} รายการ`, 'AttractionController');
       return attractions;
     } catch (error) {
-      this.logger.error('Error finding all attractions:', error);
+      this.logger.error('เกิดข้อผิดพลาดในการดึงข้อมูล attraction ทั้งหมด', error.stack, 'AttractionController');
       throw error;
     }
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    this.logger.log(`Finding attraction with id: ${id}`);
+    this.logger.log(`GET /attraction/${id} - ค้นหา attraction ID: ${id}`, 'AttractionController');
+    
     try {
       const attraction = await this.attractionService.findOne(+id);
       if (!attraction) {
-        this.logger.warn(`Attraction with id ${id} not found`);
+        this.logger.warn(`ไม่พบ attraction ID: ${id}`, 'AttractionController');
         throw new Error(`Attraction with id ${id} not found`);
       }
-      this.logger.log(`Found attraction: ${attraction.name}`);
+      this.logger.log(`พบ attraction: ${attraction.name} ที่ ${attraction.detail}`, 'AttractionController');
       return attraction;
     } catch (error) {
-      this.logger.error(`Error finding attraction with id ${id}:`, error);
+      this.logger.error(`เกิดข้อผิดพลาดในการค้นหา attraction ID: ${id}`, error.stack, 'AttractionController');
       throw error;
     }
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateAttractionDto: UpdateAttractionDto) {
-    this.logger.log(`Updating attraction with id: ${id}, data: ${JSON.stringify(updateAttractionDto)}`);
+    this.logger.log(`PATCH /attraction/${id} - อัปเดต attraction ID: ${id}`, 'AttractionController');
+    this.logger.log(`ข้อมูลที่จะอัปเดต: ${JSON.stringify(updateAttractionDto)}`, 'AttractionController');
+    
     try {
       const attraction = await this.attractionService.update(+id, updateAttractionDto);
-      this.logger.log(`Updated attraction: ${attraction.name}`);
+      this.logger.log(`อัปเดต attraction สำเร็จ: ${attraction.name}`, 'AttractionController');
       return attraction;
     } catch (error) {
-      this.logger.error(`Error updating attraction with id ${id}:`, error);
+      this.logger.error(`เกิดข้อผิดพลาดในการอัปเดต attraction ID: ${id}`, error.stack, 'AttractionController');
       throw error;
     }
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    this.logger.log(`Removing attraction with id: ${id}`);
+    this.logger.log(`DELETE /attraction/${id} - ลบ attraction ID: ${id}`, 'AttractionController');
+    
     try {
       const result = await this.attractionService.remove(+id);
-      this.logger.log(`Successfully removed attraction with id: ${id}`);
-      return result;
+      this.logger.log(`ลบ attraction ID: ${id} สำเร็จ`, 'AttractionController');
+      return { message: `ลบ attraction ID ${id} สำเร็จ`, result };
     } catch (error) {
-      this.logger.error(`Error removing attraction with id ${id}:`, error);
+      this.logger.error(`เกิดข้อผิดพลาดในการลบ attraction ID: ${id}`, error.stack, 'AttractionController');
       throw error;
     }
   }
